@@ -1,244 +1,338 @@
 # -*- coding: utf-8 -*-
 
-# set modules  dir
+"""
+NqDataLoader - Module for loading and filtering keyboard data.
+"""
+
 import numpy as np
-import sys, os, re, datetime
+import os
+import re
+import datetime
+import logging
+
+# Configure logger
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# Constants for maximum hold time
+MAX_HOLD_TIME = 5
 
 
 class NqDataLoader:
+    """Class for loading and processing keyboard data files."""
+
+    # Filter constants
     FLT_NO_MOUSE = 1 << 0
     FLT_NO_LETTERS = 1 << 1
     FLT_NO_BACK = 1 << 2
-    FLT_NO_SHORT_META = 1 << 3    # space, enter, arrows, etc.
-    FLT_NO_LONG_META = 1 << 4 # shift, control, alt, ect.
+    FLT_NO_SHORT_META = 1 << 3  # space, enter, arrows, etc.
+    FLT_NO_LONG_META = 1 << 4  # shift, control, alt, etc.
     FLT_NO_PUNCT = 1 << 5
-    
+
     def __init__(self):
-        self.dataKeys = None
-        self.dataHT = None
-        self.dataTimeStart = None
-        self.dataTimeEnd = None
-        pass
-    
+        """Initialize data loader with empty data structures."""
+        self.data_keys = None
+        self.data_ht = None
+        self.data_time_start = None
+        self.data_time_end = None
+        self.data_ft = None
+        self.lbl = None
 
-    def sanityCheck( self ):
+    def sanity_check(self) -> int:
         """
-        Filter out keystrokes variables in the member variables. 
+        Filter out keystrokes variables in the member variables.
         Eliminate anything < 0.
-        returns the number of elements removed
-        """
-        assert( self.dataKeys is not None and len(self.dataKeys) > 0 )
-        assert( self.dataHT is not None and len(self.dataHT) > 0 )
-        assert( self.dataTimeStart is not None and len(self.dataTimeStart) > 0 )
-        assert( self.dataTimeEnd is not None and len(self.dataTimeEnd) > 0 )
-        
-        badLbl = self.dataTimeStart <= 0
-        badLbl = np.bitwise_or( badLbl,  self.dataTimeEnd <= 0)
-        badLbl = np.bitwise_or( badLbl,  self.dataHT < 0)
-        badLbl = np.bitwise_or( badLbl,  self.dataHT >= 5)
-        #----- remove non consecutive start times
-        nonConsTmpLbl = np.zeros( len(self.dataTimeStart) ) == 0 # start with all True labels
-        nonConsLbl = np.zeros( len(self.dataTimeStart) ) > 0 # start with all False labels
-        startTmpArr = self.dataTimeStart.copy()
-        while ( np.sum( nonConsTmpLbl ) > 0 ):
-			# find non consecutive labels
-			nonConsTmpLbl = np.append([False], np.diff(startTmpArr)<0)                
-   			# keep track of the indeces to remove
-			nonConsLbl = np.bitwise_or( nonConsLbl,  nonConsTmpLbl)
-               # changes value in the temporary array
-			indecesToChange = np.arange(len(nonConsTmpLbl))[nonConsTmpLbl]
-			startTmpArr[indecesToChange] = startTmpArr[indecesToChange-1]
 
-        badLbl = np.bitwise_or( badLbl,  nonConsLbl)
-        #-----
-		
-        # invert bad labels
-        goodLbl = np.bitwise_not(badLbl)
-        
-        self.dataKeys = self.dataKeys[goodLbl]
-        self.dataHT = self.dataHT[goodLbl]
-        self.dataTimeStart = self.dataTimeStart[goodLbl]
-        self.dataTimeEnd = self.dataTimeEnd[goodLbl]
-             
-        
-        return sum(badLbl)
-    
-    def loadDataFile(self, fileIn, autoFilt=True, impType=None, debug=False):  
+        Returns:
+            int: Number of elements removed
         """
-        Load raw data file
-        """      
-        errorStr = ''
+        assert self.data_keys is not None and len(self.data_keys) > 0
+        assert self.data_ht is not None and len(self.data_ht) > 0
+        assert self.data_time_start is not None and len(self.data_time_start) > 0
+        assert self.data_time_end is not None and len(self.data_time_end) > 0
+
+        # Create mask for invalid values
+        bad_lbl = self.data_time_start <= 0
+        bad_lbl = np.bitwise_or(bad_lbl, self.data_time_end <= 0)
+        bad_lbl = np.bitwise_or(bad_lbl, self.data_ht < 0)
+        bad_lbl = np.bitwise_or(bad_lbl, self.data_ht >= MAX_HOLD_TIME)
+
+        # Remove non-consecutive start times
+        non_cons_tmp_lbl = np.ones(
+            len(self.data_time_start), dtype=bool
+        )  # Start with all True labels
+        non_cons_lbl = np.zeros(
+            len(self.data_time_start), dtype=bool
+        )  # Start with all False labels
+        start_tmp_arr = self.data_time_start.copy()
+
+        while np.sum(non_cons_tmp_lbl) > 0:
+            # Find non-consecutive labels
+            non_cons_tmp_lbl = np.append([False], np.diff(start_tmp_arr) < 0)
+            # Keep track of the indices to remove
+            non_cons_lbl = np.bitwise_or(non_cons_lbl, non_cons_tmp_lbl)
+            # Changes value in the temporary array
+            indices_to_change = np.arange(len(non_cons_tmp_lbl))[non_cons_tmp_lbl]
+            start_tmp_arr[indices_to_change] = start_tmp_arr[indices_to_change - 1]
+
+        bad_lbl = np.bitwise_or(bad_lbl, non_cons_lbl)
+
+        # Invert bad labels
+        good_lbl = np.bitwise_not(bad_lbl)
+
+        # Filter data
+        self.data_keys = self.data_keys[good_lbl]
+        self.data_ht = self.data_ht[good_lbl]
+        self.data_time_start = self.data_time_start[good_lbl]
+        self.data_time_end = self.data_time_end[good_lbl]
+
+        return int(np.sum(bad_lbl))
+
+    def load_data_file(
+        self,
+        file_in: str,
+        auto_filt: bool = True,
+        imp_type: str = None,
+        debug: bool = False,
+    ):
+        """
+        Load raw data file.
+
+        Args:
+            file_in: Path to the input file
+            auto_filt: Whether to automatically filter data
+            imp_type: Import type ('si' for sleep inertia format)
+            debug: Whether to print debug information
+
+        Returns:
+            bool or str: True if successful, error message if failed
+        """
         try:
-            data = []
-            
-#            if data.dtype == np.int64: # Sleep inertia format
-            if impType =='si':
-                data = np.genfromtxt(fileIn, dtype=long, delimiter=',', skip_header=0)
+            if imp_type == "si":  # Sleep inertia format
+                data = np.genfromtxt(file_in, dtype=int, delimiter=",", skip_header=0)
                 data = data - data.min()
                 data = data.astype(np.float64) / 1000
-                self.dataTimeStart = data[:,0]  
-                self.dataTimeEnd = data[:,1]
-                self.dataHT = self.dataTimeEnd - self.dataTimeStart
-                #TO REMOVE
-                self.dataKeys = np.zeros(len(self.dataHT))#Just to make sanity work
-                remNum = self.sanityCheck()
-                #print remNum
-            else: # PD format
-                data = np.genfromtxt(fileIn, dtype=None, delimiter=',', skip_header=0)
-                # load
-                self.dataKeys = data['f0']
-                self.dataHT = data['f1']  
-                self.dataTimeStart = data['f3']  #No CHANGED 2<->3
-                self.dataTimeEnd = data['f2']
-                remNum = self.sanityCheck()
-                #print '{:}, {:} %'.format( remNum, 1.0*remNum/len(self.dataHT) )
-                
-                if (debug):
-                    print 'removed ', str(remNum), ' elements'
+                self.data_time_start = data[:, 0]
+                self.data_time_end = data[:, 1]
+                self.data_ht = self.data_time_end - self.data_time_start
+                # Just to make sanity check work
+                self.data_keys = np.zeros(len(self.data_ht))
+                rem_num = self.sanity_check()
+                if debug:
+                    logger.info(f"Removed {rem_num} elements")
+            else:  # PD format
+                data = np.genfromtxt(
+                    file_in, dtype=None, delimiter=",", skip_header=0, encoding="utf-8"
+                )
+                # Load data fields
+                self.data_keys = data["f0"]
+                self.data_ht = data["f1"]
+                self.data_time_start = data["f3"]  # Changed order from 2<->3
+                self.data_time_end = data["f2"]
+                rem_num = self.sanity_check()
 
-                if( autoFilt ):
-                    self.filtData(self.FLT_NO_MOUSE  | self.FLT_NO_LONG_META )
-            
-            # load flight time
-            self.dataFT = np.array([ self.dataTimeStart[i]-self.dataTimeStart[i-1]  for i in range(1,self.dataTimeStart.size) ])
-            self.dataFT = np.append(self.dataFT, 0)
-            
-            
-            
+                if debug:
+                    logger.info(
+                        f"Removed {rem_num} elements ({100.0 * rem_num / len(self.data_ht):.2f}%)"
+                    )
+
+                if auto_filt:
+                    self.filt_data(self.FLT_NO_MOUSE | self.FLT_NO_LONG_META)
+
+            # Calculate flight time
+            self.data_ft = np.array(
+                [
+                    self.data_time_start[i] - self.data_time_start[i - 1]
+                    for i in range(1, self.data_time_start.size)
+                ]
+            )
+            self.data_ft = np.append(self.data_ft, 0)
+
             return True
         except IOError:
-            errorStr = 'file {:s} not found'.format(fileIn)
-            return errorStr
-    def loadDataArr(self, lstArr):
-        self.dataKeys = np.zeros((len(lstArr),1), dtype='S30')
-        self.dataHT = np.zeros((len(lstArr),1))
-        self.dataTimeStart = np.zeros((len(lstArr),1))  
-        self.dataTimeEnd =np.zeros((len(lstArr),1))
-        i = 0
-        for row in lstArr:
-            tok = row.split(',')
-            self.dataKeys[i] = str(tok[0])
-            self.dataHT[i] = str(tok[1])
-            self.dataTimeStart[i] = str(tok[2])
-            self.dataTimeEnd[i] = str(tok[3]) 
-            i += 1
-            
-        #self.loadDataFile(lstArr.toString())
-    
+            error_str = f"File {file_in} not found"
+            logger.error(error_str)
+            return error_str
 
-    def filtData(self, flags):
+    def load_data_arr(self, lst_arr: list[str]) -> None:
         """
-        Filter data
-        return (fltKeys, fltHT, fltTimeStart, fltTimeEnd)
-        """
-        #-- filters
-        pMouse=re.compile('("mouse.+")')
-        pChar=re.compile('(".{1}")')
-        pBack=re.compile('("BackSpace")')
-        pLongMeta=re.compile('("Shift.+")|("Alt.+")|("Control.+")')
-        pShortMeta=re.compile('("space")|("Num_Lock")|("Return")|("P_Enter")|("Caps_Lock")|("Left")|("Right")|("Up")|("Down")')
-        pPunct=re.compile('("more")|("less")|("exclamdown")|("comma")|("\[65027\]")|("\[65105\]")|("ntilde")|("minus")|("equal")|("bracketleft")|("bracketright")|("semicolon")|("backslash")|("apostrophe")|("comma")|("period")|("slash")|("grave")')
-        #--
+        Load data from a list of strings.
 
-        #-- create mask labels        
-        lbl = np.ones(len( self.dataKeys ))==1
-        if( flags & self.FLT_NO_MOUSE ):
-            lblTmp = [ pMouse.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        if( flags & self.FLT_NO_LETTERS ):
-            lblTmp = [ pChar.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        if( flags & self.FLT_NO_BACK ):
-            lblTmp = [ pBack.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        if( flags & self.FLT_NO_SHORT_META ):
-            lblTmp = [ pShortMeta.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        if( flags & self.FLT_NO_LONG_META ):
-            lblTmp = [ pLongMeta.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        if( flags & self.FLT_NO_PUNCT ):
-            lblTmp = [ pPunct.match( k ) is None for k in self.dataKeys]
-            lbl = lbl & lblTmp
-        #--
-        
-        self.lbl = lbl        
-        
-        self.dataKeys = self.dataKeys[lbl]
-        self.dataHT = self.dataHT[lbl]
-        self.dataTimeStart = self.dataTimeStart[lbl]
-        self.dataTimeEnd = self.dataTimeEnd[lbl]        
-        
-    def getStdVariablesFilt( fileIn, impType=None ):
+        Args:
+            lst_arr: List of comma-separated data strings
         """
-        Receives as parameter the location of the raw typing file
-        Return filtered variables (i.e. no mouse clicks, no long meta buttons, no backspaces) 
-        format returned (array of keys, array of hold times, array of press events timestamps, array of release events timestamps )
+        self.data_keys = np.zeros((len(lst_arr), 1), dtype="S30")
+        self.data_ht = np.zeros((len(lst_arr), 1))
+        self.data_time_start = np.zeros((len(lst_arr), 1))
+        self.data_time_end = np.zeros((len(lst_arr), 1))
+
+        for i, row in enumerate(lst_arr):
+            tok = row.split(",")
+            self.data_keys[i] = str(tok[0])
+            self.data_ht[i] = float(tok[1])
+            self.data_time_start[i] = float(tok[2])
+            self.data_time_end[i] = float(tok[3])
+
+    def filt_data(self, flags: int) -> None:
         """
-        nqObj = self
-        res = nqObj.loadDataFile( fileIn, False, impType)
-        # remove delete button
-        nqObj.filtData(nqObj.FLT_NO_MOUSE  | nqObj.FLT_NO_LONG_META | nqObj.FLT_NO_BACK )
-        assert(res==True) # make sure the file exists
-        dataKeys = nqObj.dataKeys
-        dataHT = nqObj.dataHT
-        dataTimeStart = nqObj.dataTimeStart
-        dataTimeEnd = nqObj.dataTimeEnd
-        
-        return dataKeys, dataHT, dataTimeStart, dataTimeEnd
+        Filter data according to specified flags.
+
+        Args:
+            flags: Bit flags for filtering (use FLT_* constants)
+        """
+        # Define filters
+        p_mouse = re.compile(r'("mouse.+")')
+        p_char = re.compile(r'(".{1}")')
+        p_back = re.compile(r'("BackSpace")')
+        p_long_meta = re.compile(r'("Shift.+")|("Alt.+")|("Control.+")')
+        p_short_meta = re.compile(
+            r'("space")|("Num_Lock")|("Return")|("P_Enter")|'
+            r'("Caps_Lock")|("Left")|("Right")|("Up")|("Down")'
+        )
+        p_punct = re.compile(
+            r'("more")|("less")|("exclamdown")|("comma")|'
+            r'("\[65027\]")|("\[65105\]")|("ntilde")|("minus")|("equal")|'
+            r'("bracketleft")|("bracketright")|("semicolon")|("backslash")|'
+            r'("apostrophe")|("comma")|("period")|("slash")|("grave")'
+        )
+
+        # Create mask labels
+        lbl = np.ones(len(self.data_keys), dtype=bool)
+
+        if flags & self.FLT_NO_MOUSE:
+            lbl_tmp = np.array([p_mouse.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        if flags & self.FLT_NO_LETTERS:
+            lbl_tmp = np.array([p_char.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        if flags & self.FLT_NO_BACK:
+            lbl_tmp = np.array([p_back.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        if flags & self.FLT_NO_SHORT_META:
+            lbl_tmp = np.array([p_short_meta.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        if flags & self.FLT_NO_LONG_META:
+            lbl_tmp = np.array([p_long_meta.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        if flags & self.FLT_NO_PUNCT:
+            lbl_tmp = np.array([p_punct.match(k) is None for k in self.data_keys])
+            lbl = np.logical_and(lbl, lbl_tmp)
+
+        # Store and apply the filter
+        self.lbl = lbl
+        self.data_keys = self.data_keys[lbl]
+        self.data_ht = self.data_ht[lbl]
+        self.data_time_start = self.data_time_start[lbl]
+        self.data_time_end = self.data_time_end[lbl]
+
+    @classmethod
+    def get_std_variables_filt(
+        cls, file_in: str, imp_type: str = None
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Get filtered variables from a file.
+
+        Args:
+            file_in: Path to the raw typing file
+            imp_type: Format of the input file ('si' for sleep inertia data)
+
+        Returns:
+            Tuple of arrays: (keys, hold times, press timestamps, release timestamps)
+        """
+        nq_obj = cls()
+        res = nq_obj.load_data_file(file_in, False, imp_type)
+        # Remove delete button
+        nq_obj.filt_data(
+            nq_obj.FLT_NO_MOUSE | nq_obj.FLT_NO_LONG_META | nq_obj.FLT_NO_BACK
+        )
+        assert res is True, "File not found or error loading data"
+
+        return (
+            nq_obj.data_keys,
+            nq_obj.data_ht,
+            nq_obj.data_time_start,
+            nq_obj.data_time_end,
+        )
 
 
-def getDataFiltHelper( fileIn, impType=None ):
+def get_data_filt_helper(
+    file_in: str, imp_type: str = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Helper method to load filtered keypress data from given file
-    :param fileIn: path to csv keypress file 
-    :param impType: format of the csv file ('si': for sleep inertia data, None for PD data)
-    :return: list of array with dataKeys, dataHT, dataTimeStart, dataTimeEnd
+    Helper method to load filtered keypress data from given file.
+
+    Args:
+        file_in: Path to csv keypress file
+        imp_type: Format of the csv file ('si' for sleep inertia data, None for PD data)
+
+    Returns:
+        Tuple of arrays: (keys, hold times, press timestamps, release timestamps)
     """
-    nqObj = NqDataLoader()
-    res = nqObj.loadDataFile( fileIn, False, impType)
-    # remove delete button
-    nqObj.filtData(nqObj.FLT_NO_MOUSE  | nqObj.FLT_NO_LONG_META | nqObj.FLT_NO_BACK )
-    assert(res==True) # make sure the file exists
-    dataKeys = nqObj.dataKeys
-    dataHT = nqObj.dataHT
-    dataTimeStart = nqObj.dataTimeStart
-    dataTimeEnd = nqObj.dataTimeEnd
-    
-    return dataKeys, dataHT, dataTimeStart, dataTimeEnd
-    
-    
-def genFileStruct( dataDir, maxRepNum=4 ):
-    '''
-    Generate a dictionary with the NQ file list and test date (legacy method)
-    :param dataDir: base directory containing the CSV files
-    :param maxRepNum: integer with the maximum repetition number
-    :return: two dictionaries: fMap, dateMap = NQ file/date list[pID][repID][expID]
-    '''
-    fMap = {} # data container
-    dateMap = {}
-    files = os.listdir( dataDir )    
-    p = re.compile( '([0-9]+)\.{1}([0-9]+)_([0-9]+)_([0-9]+)\.csv' )
+    nq_obj = NqDataLoader()
+    res = nq_obj.load_data_file(file_in, False, imp_type)
+    # Remove delete button
+    nq_obj.filt_data(nq_obj.FLT_NO_MOUSE | nq_obj.FLT_NO_LONG_META | nq_obj.FLT_NO_BACK)
+    assert res is True, "File not found or error loading data"
+
+    return (
+        nq_obj.data_keys,
+        nq_obj.data_ht,
+        nq_obj.data_time_start,
+        nq_obj.data_time_end,
+    )
+
+
+def gen_file_struct(data_dir: str, max_rep_num: int = 4) -> tuple[dict, dict]:
+    """
+    Generate a dictionary with the NQ file list and test date (legacy method).
+
+    Args:
+        data_dir: Base directory containing the CSV files
+        max_rep_num: Integer with the maximum repetition number
+
+    Returns:
+        Two dictionaries: fMap, dateMap = NQ file/date list[pID][repID][expID]
+    """
+    f_map = {}  # data container
+    date_map = {}
+    files = os.listdir(data_dir)
+    p = re.compile(r"([0-9]+)\.{1}([0-9]+)_([0-9]+)_([0-9]+)\.csv")
+
     for f in files:
-        m = p.match( f )
-        
-        if( m ): # file found
-            timeStamp = m.group(1)
-            pID = int(m.group(2))
-            repID = int(m.group(3))
-            expID = int(m.group(4))
-            # store new patient
-            if( not fMap.has_key(pID) ):
-                fMap[pID] = {}
-                dateMap[pID] = {}
-                for tmpRid in range(1, maxRepNum+1):
-                    fMap[pID][tmpRid] = {}
-                    dateMap[pID][tmpRid] = {}
-                # fMap[pID] = {1: {}, 2: {}, 3: {}, 4:{}}
-            # store data
-            fMap[pID][repID][expID] = dataDir + f
-            dateMap[pID][repID][expID] = datetime.datetime.fromtimestamp(int(timeStamp))
+        m = p.match(f)
+
+        if m:  # file found
+            time_stamp = m.group(1)
+            p_id = int(m.group(2))
+            rep_id = int(m.group(3))
+            exp_id = int(m.group(4))
+
+            # Store new patient
+            if p_id not in f_map:
+                f_map[p_id] = {}
+                date_map[p_id] = {}
+                for tmp_rid in range(1, max_rep_num + 1):
+                    f_map[p_id][tmp_rid] = {}
+                    date_map[p_id][tmp_rid] = {}
+
+            # Store data
+            f_map[p_id][rep_id][exp_id] = data_dir + f
+            date_map[p_id][rep_id][exp_id] = datetime.datetime.fromtimestamp(
+                int(time_stamp)
+            )
         else:
-            print f, ' no'
-            
-    return fMap, dateMap
+            logger.debug(f"File {f} doesn't match the expected pattern")
+
+    return f_map, date_map
+
+
+if __name__ == "__main__":
+    # Example usage
+    logger.info("NqDataLoader module - use as library or import specific functions")
