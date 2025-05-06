@@ -9,6 +9,7 @@ from pathlib import Path
 # %%
 # Data Loading
 DATA_PATH = Path("data")
+ASSETS_PATH = Path("assets")
 
 def load_ground_truth(dataset: str) -> pd.DataFrame:
     data_dir = DATA_PATH / dataset
@@ -83,6 +84,7 @@ all_trials = load_all_trials(ground_truth)
 # # Graph 1
 # %%
 
+pass
 
 # %% [markdown]
 # Graph 2
