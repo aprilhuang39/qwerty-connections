@@ -5,6 +5,7 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import data.nqDataLoader as nq
 from pathlib import Path
+import kaleido
 
 # %%
 # Data Loading
@@ -130,16 +131,76 @@ plt.show()
 pass
 
 # %% [markdown]
-# # Graph 3
+# # Graph 3: Correlation between UPDRS-III and Alternating Finger Tapping Scores
 # %%
 
-pass
+def plot_updrs_alternating_tapping_correlation(df: pd.DataFrame) -> None:
+    # Plotly scatter plot
+    fig = px.scatter(
+        df,
+        x="UPDRS-III",
+        y="alternating_finger_tapping",
+        color="has_PD",
+        title="Correlation between UPDRS-III and Alternating Finger Tapping Scores",
+        labels={
+            "UPDRS-III": "UPDRS-III Score",
+            "alternating_finger_tapping": "Alternating Finger Tapping Score",
+            "has_PD": "Parkinson's Disease Status"
+        },
+        trendline="ols",  # Add linear regression line
+        color_discrete_sequence=["#2ecc71", "#e74c3c"]  # Green for non-PD, Red for PD
+    )
+
+    fig.update_layout(
+        title_x=0.5,
+        title_font_size=20,
+        xaxis_title_font_size=16,
+        yaxis_title_font_size=16
+    )
+
+    fig.write_image(ASSETS_PATH / "updrs_alternating_tapping_correlation.png")
+
+plot_updrs_alternating_tapping_correlation(all_trials)
 
 # %% [markdown]
-# # Graph 4
+# # Graph 4: Typing Speed Comparison Between Groups
 # %%
 
-pass
+def plot_typing_speed_comparison(df: pd.DataFrame) -> None:
+    # Plotly combined violin and box plot
+    fig = px.violin(
+        df,
+        x="has_PD",
+        y="typing_speed",
+        color="has_PD",
+        box=True,  # Add box plot inside violin
+        points="all",  # Show all points
+        title="Typing Speed Distribution: Parkinson's vs Control",
+        labels={
+            "has_PD": "Group",
+            "typing_speed": "Typing Speed",
+            "has_PD": "Parkinson's Disease Status"
+        },
+        color_discrete_sequence=["#2ecc71", "#e74c3c"]  # Green for non-PD, Red for PD
+    )
+
+    # Update x-axis labels
+    fig.update_xaxes(
+        ticktext=["Control", "Parkinson's"],
+        tickvals=[0, 1]
+    )
+
+    fig.update_layout(
+        title_x=0.5,
+        title_font_size=20,
+        xaxis_title_font_size=16,
+        yaxis_title_font_size=16,
+        showlegend=False  # Hide legend since colors are self-explanatory
+    )
+
+    fig.write_image(ASSETS_PATH / "typing_speed_comparison.png")
+
+plot_typing_speed_comparison(all_trials)
 
 # %% [markdown]
 # # Graph 5
