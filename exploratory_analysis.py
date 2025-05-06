@@ -81,10 +81,47 @@ ground_truth = pd.concat([ground_truth_1, ground_truth_2])
 all_trials = load_all_trials(ground_truth)
 
 # %% [markdown]
-# # Graph 1
+# # Graph 1 - Average Key Delay vs. UPDRS-III
 # %%
+def calculate_key_delays(press_times: np.ndarray, release_times: np.ndarray) -> float:
+    if press_times is None or release_times is None or len(press_times) < 2 or len(release_times) < 2:
+        return np.nan
+    return press_times[1:] - release_times[:-1]
 
-pass
+def calculate_average_key_delays(df: pd.DataFrame) -> pd.DataFrame:
+    df["key_delays_1"] = df.apply(
+        lambda row: calculate_key_delays(row["press_times_1"], row["release_times_1"]),
+        axis=1
+    )
+    df["key_delays_2"] = df.apply(
+        lambda row: calculate_key_delays(row["press_times_2"], row["release_times_2"]),
+        axis=1
+    )
+
+    df['all_key_delays'] = df.apply(
+        lambda row: np.concatenate([
+            row['key_delays_1'] if isinstance(row['key_delays_1'], np.ndarray) else np.array([]),
+            row['key_delays_2'] if isinstance(row['key_delays_2'], np.ndarray) else np.array([])
+        ]),
+        axis=1
+    )
+
+    exploded = df[['has_PD', 'all_key_delays']].explode('all_key_delays')
+    exploded = exploded.dropna(subset=['all_key_delays'])
+    exploded['all_key_delays'] = exploded['all_key_delays'].astype(float)
+
+    pt = exploded.groupby('has_PD')['all_key_delays'].agg(['sum', 'count', 'mean']).rename(
+        columns={'sum': 'total_key_delays', 'count': 'n_key_delays', 'mean': 'avg_key_delay'}
+    )
+    return pt
+
+pt = calculate_average_key_delays(all_trials)
+ax = pt['avg_key_delay'].plot.bar()
+ax.set_xlabel('Has Parkinson\'s Disease')
+ax.set_ylabel('Average Key Delay')
+ax.set_title('Average Key Delay vs. Has PD')
+ax.figure.savefig(ASSETS_PATH / "avg_key_delay_vs_has_pd.png", dpi=300)
+plt.show()
 
 # %% [markdown]
 # Graph 2
