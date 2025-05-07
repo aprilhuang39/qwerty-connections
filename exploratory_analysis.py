@@ -235,13 +235,40 @@ def plot_typing_speed_comparison(df: pd.DataFrame) -> None:
 plot_typing_speed_comparison(all_trials)
 
 # %% [markdown]
-# # Graph 5
+# # Graph 5 - Distribution of nQi Scores by PD Status
 # %%
 
-pass
+plt.figure(figsize=(8, 5))
+for label, group in all_trials.groupby("has_PD"):
+    plt.hist(group["nQi"].dropna(), bins=20, alpha=0.5, label=f"PD = {label}")
+
+plt.xlabel("nQi Score")
+plt.ylabel("Frequency")
+plt.title("Distribution of nQi Scores by PD Status")
+plt.legend()
+plt.tight_layout()
+plt.savefig(ASSETS_PATH / "nqi_histogram_by_pd.png", dpi=300)
+plt.show()
 
 # %% [markdown]
-# # Graph 6
+# # Graph 6 - Average Variance of Hold Times by PD Status
 # %%
 
-pass
+all_trials["hold_var_1"] = all_trials["hold_times_1"].apply(
+    lambda x: np.var(x) if isinstance(x, np.ndarray) and len(x) > 1 else np.nan
+)
+all_trials["hold_var_2"] = all_trials["hold_times_2"].apply(
+    lambda x: np.var(x) if isinstance(x, np.ndarray) and len(x) > 1 else np.nan
+)
+
+all_trials["avg_hold_var"] = all_trials[["hold_var_1", "hold_var_2"]].mean(axis=1)
+
+fig, ax = plt.subplots()
+all_trials.boxplot(column="avg_hold_var", by="has_PD", ax=ax)
+ax.set_title("Average Variance of Hold Times by PD Status")
+ax.set_xlabel("Has Parkinson's Disease")
+ax.set_ylabel("Hold Time Variance")
+plt.suptitle("")
+fig.tight_layout()
+fig.savefig(ASSETS_PATH / "hold_time_variance_vs_pd.png", dpi=300)
+plt.show()
