@@ -82,7 +82,7 @@ ground_truth = pd.concat([ground_truth_1, ground_truth_2])
 all_trials = load_all_trials(ground_truth)
 
 # %% [markdown]
-# # Graph 1 - Average Key Delay vs. UPDRS-III
+# # Graph 1 - Average Key Delay vs. Has PD
 # %%
 def calculate_key_delays(press_times: np.ndarray, release_times: np.ndarray) -> float:
     if press_times is None or release_times is None or len(press_times) < 2 or len(release_times) < 2:
@@ -116,19 +116,51 @@ def calculate_average_key_delays(df: pd.DataFrame) -> pd.DataFrame:
     )
     return pt
 
-pt = calculate_average_key_delays(all_trials)
-ax = pt['avg_key_delay'].plot.bar()
-ax.set_xlabel('Has Parkinson\'s Disease')
-ax.set_ylabel('Average Key Delay')
-ax.set_title('Average Key Delay vs. Has PD')
-ax.figure.savefig(ASSETS_PATH / "avg_key_delay_vs_has_pd.png", dpi=300)
-plt.show()
+pt = calculate_average_key_delays(all_trials).reset_index()
+ax = px.bar(pt, x='has_PD', y='avg_key_delay')
+ax.update_layout(
+    xaxis_title='Has Parkinson\'s Disease',
+    yaxis_title='Average Key Delay',
+    title='Average Key Delay vs. Has PD'
+)
+ax.show()
+
 
 # %% [markdown]
-# Graph 2
+# Graph 2 - Key Delay vs. UPDRS-III
 # %%
 
-pass
+def calculate_key_delays_per_patient(df: pd.DataFrame) -> pd.DataFrame:
+    df['key_delays_1'] = df.apply(
+        lambda row: calculate_key_delays(row["press_times_1"], row["release_times_1"]),
+        axis=1
+    )
+    df['key_delays_2'] = df.apply(
+        lambda row: calculate_key_delays(row["press_times_2"], row["release_times_2"]),
+        axis=1
+    )
+    df['all_key_delays'] = df.apply(
+        lambda row: np.concatenate([
+            row['key_delays_1'] if isinstance(row['key_delays_1'], np.ndarray) else np.array([]),
+            row['key_delays_2'] if isinstance(row['key_delays_2'], np.ndarray) else np.array([])
+        ]),
+        axis=1
+    )
+
+    exploded = df[['pID', 'UPDRS-III', 'all_key_delays']].explode('all_key_delays')
+    exploded = exploded.dropna(subset=['all_key_delays'])
+    exploded['all_key_delays'] = exploded['all_key_delays'].astype(float)
+    pt = exploded.groupby(['pID', 'UPDRS-III'])['all_key_delays'].mean()
+    return pt
+
+pt = calculate_key_delays_per_patient(all_trials).reset_index()
+ax = px.scatter(pt, x='UPDRS-III', y='all_key_delays')
+ax.update_layout(
+    xaxis_title='UPDRS-III',
+    yaxis_title='Average Key Delay',
+    title='Average Key Delay vs. UPDRS-III'
+)
+ax.show()
 
 # %% [markdown]
 # # Graph 3: Correlation between UPDRS-III and Alternating Finger Tapping Scores
