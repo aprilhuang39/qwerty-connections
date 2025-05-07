@@ -193,6 +193,7 @@ def plot_updrs_alternating_tapping_correlation(df: pd.DataFrame) -> None:
     )
 
     fig.write_image(ASSETS_PATH / "updrs_alternating_tapping_correlation.png")
+    fig.show()
 
 plot_updrs_alternating_tapping_correlation(all_trials)
 
@@ -233,6 +234,7 @@ def plot_typing_speed_comparison(df: pd.DataFrame) -> None:
     )
 
     fig.write_image(ASSETS_PATH / "typing_speed_comparison.png")
+    fig.show()
 
 plot_typing_speed_comparison(all_trials)
 

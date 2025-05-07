@@ -5,3 +5,4 @@ numpy
 ipykernel
 nbformat
 kaleido
+statsmodels
