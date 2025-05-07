@@ -123,6 +123,7 @@ ax.update_layout(
     yaxis_title='Average Key Delay',
     title='Average Key Delay vs. Has PD'
 )
+ax.write_image(ASSETS_PATH / "key_delay_vs_pd.png")
 ax.show()
 
 
@@ -160,6 +161,7 @@ ax.update_layout(
     yaxis_title='Average Key Delay',
     title='Average Key Delay vs. UPDRS-III'
 )
+ax.write_image(ASSETS_PATH / "key_delay_vs_updrs.png")
 ax.show()
 
 # %% [markdown]
