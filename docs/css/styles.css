@@ -383,3 +383,75 @@ footer {
     margin-top: 0.25rem;
     font-style: italic;
 } 
+
+/* Writeup Styles */
+.writeup-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.writeup-container h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.writeup-section {
+    margin-bottom: 2rem;
+}
+
+.writeup-section h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.writeup-section h4 {
+    color: #444;
+    margin: 1.5rem 0 0.75rem;
+}
+
+.writeup-section p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.writeup-section ul, 
+.writeup-section ol {
+    padding-left: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.writeup-section li {
+    margin-bottom: 0.5rem;
+}
+
+.writeup-section li strong {
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .writeup-container {
+        padding: 1rem;
+        margin: 1rem auto;
+    }
+    
+    .writeup-container h2 {
+        font-size: 1.5rem;
+    }
+    
+    .writeup-section h3 {
+        font-size: 1.25rem;
+    }
+    
+    .writeup-section h4 {
+        font-size: 1.1rem;
+    }
+} 

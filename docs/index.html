@@ -91,6 +91,78 @@
         <p>QWERTY Connections Force Graph Visualization</p>
     </footer>
 
+    <div class="writeup-container">
+        <h2>Project Writeup</h2>
+        
+        <section class="writeup-section">
+            <h3>Design Rationale</h3>
+            <p>Our force-directed graph visualization was designed to explore connections between patients based on typing metrics and Parkinson's Disease (PD) indicators. Key design decisions include:</p>
+            
+            <h4>Visual Encodings</h4>
+            <ul>
+                <li><strong>Node Color:</strong> Red for PD patients and blue for non-PD patients, creating an intuitive binary distinction that immediately highlights the disease status.</li>
+                <li><strong>Node Size:</strong> Scaled based on UPDRS-III scores, providing a quantitative representation of symptom severity that works well within the force-directed layout.</li>
+                <li><strong>Edge Thickness:</strong> Inversely proportional to the distance metric between patients, making stronger connections (smaller distances) more visually prominent.</li>
+                <li><strong>Edge Filtering:</strong> Showing only the smallest n% of edges to reduce visual clutter while highlighting the strongest connections.</li>
+            </ul>
+            
+            <h4>Alternatives Considered</h4>
+            <p>We explored several alternative approaches before arriving at our final design:</p>
+            <ul>
+                <li><strong>Bar and Box Plots:</strong> Initially we created comparative bar charts of average key delay by PD status and box plots of hold time variance, which were effective for showing group differences but couldn't capture the complex relationships between patients.</li>
+                <li><strong>Scatter Plots:</strong> We explored scatter plots relating UPDRS-III scores to key delays and alternating finger tapping metrics, which showed correlations but limited our ability to visualize multiple dimensions simultaneously.</li>
+                <li><strong>Histograms:</strong> Distribution plots of nQi scores by PD status revealed group differences but couldn't show patient-to-patient relationships.</li>
+                <li><strong>Violin Plots:</strong> We used these to compare typing speed between groups, which provided density information but lacked the network perspective.</li>
+                <li><strong>Heat Maps:</strong> We considered heat maps to show pairwise distances between all patients, which would have shown the complete distance matrix but lacked the intuitive network structure.</li>
+                <li><strong>Multidimensional Scaling (MDS):</strong> We explored positioning patients in 2D space based on their distances, but this would have lost the explicit connection information.</li>
+            </ul>
+            
+            <p>After evaluating these options, we determined that a force-directed graph would best reveal both the clusters and relationships among patients while supporting interactive exploration of different metrics.</p>
+            
+            <h4>Interaction Design</h4>
+            <p>We implemented several interactive elements to enhance exploration:</p>
+            <ul>
+                <li><strong>Metric Selection:</strong> Dropdown menu to switch between different edge metrics (nQi, typing speed, etc.), allowing users to explore various aspects of patient similarity.</li>
+                <li><strong>Physics Controls:</strong> Sliders for charge strength and link distance to manipulate the force simulation, giving users control over the graph layout.</li>
+                <li><strong>Edge Filtering:</strong> Dynamic threshold control to show only the strongest connections, addressing the challenge of visual clutter in dense networks.</li>
+                <li><strong>Zoom and Pan:</strong> Standard navigation controls that help users focus on specific regions of interest.</li>
+                <li><strong>Tooltips:</strong> Contextual information on hover to provide detailed data without cluttering the visualization.</li>
+                <li><strong>Collapsible Legend:</strong> Information available when needed but can be minimized to maximize screen space for the graph.</li>
+            </ul>
+        </section>
+        
+        <section class="writeup-section">
+            <h3>Development Process</h3>
+            <p>Our development process followed a data-first approach, focusing on first generating the appropriate data structure before implementing the visualization:</p>
+            
+            <ol>
+                <li><strong>Data Processing:</strong> We created a Python pipeline (force_graph_data.py) to process the raw patient data, calculate distances between patients based on selected metrics, and generate the necessary JSON files for the visualization.</li>
+                <li><strong>Core Visualization:</strong> We implemented the force-directed graph using D3.js, which provided a flexible framework for rendering the nodes and edges with the desired visual encodings.</li>
+                <li><strong>Interactive Controls:</strong> We added sliders and dropdown menus to allow users to dynamically adjust the visualization parameters.</li>
+                <li><strong>Responsive Design:</strong> We ensured the visualization worked well across different screen sizes by implementing appropriate CSS media queries and dynamic sizing.</li>
+                <li><strong>Performance Optimization:</strong> We implemented edge filtering and appropriate data structures to maintain performance even with larger datasets.</li>
+            </ol>
+            
+            <h4>Team Collaboration</h4>
+            <p>The work was divided among team members based on expertise:</p>
+            <ul>
+                <li>Data processing and backend development (Python data pipeline)</li>
+                <li>Visualization implementation (D3.js, JavaScript)</li>
+                <li>UI/UX design and styling (HTML, CSS)</li>
+                <li>Documentation and testing</li>
+            </ul>
+            
+            <h4>Challenges</h4>
+            <p>The most time-consuming aspects of the development were:</p>
+            <ul>
+                <li>Fine-tuning the force simulation parameters to create an effective layout that balanced clustering and readability</li>
+                <li>Implementing edge filtering that maintained the most important connections while reducing visual clutter</li>
+                <li>Optimizing performance for smooth interactions, especially with larger datasets</li>
+                <li>Creating an intuitive set of controls that allowed meaningful exploration without overwhelming users</li>
+            </ul>
+        </section>
+    </div>
+
     <script src="js/graph.js"></script>
 </body>
 </html> 
