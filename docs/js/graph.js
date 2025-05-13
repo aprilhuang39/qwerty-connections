@@ -22,7 +22,8 @@ let state = {
     simulation: null,
     svg: null,
     edgeFile: null, // Will be set dynamically from available files
-    loading: true
+    loading: true,
+    legendMinimized: false // Track legend state
 };
 
 // DOM References
@@ -36,6 +37,12 @@ const linkDistanceValue = document.getElementById('link-distance-value');
 const edgeFilterSlider = document.getElementById('edge-filter-slider');
 const edgeFilterValue = document.getElementById('edge-filter-value');
 const loadingElement = document.getElementById('loading');
+const helpButton = document.getElementById('help-button');
+const instructionsElement = document.getElementById('instructions');
+const instructionsBackdrop = document.getElementById('instructions-backdrop');
+const closeInstructionsButton = document.getElementById('close-instructions');
+const legendElement = document.getElementById('legend');
+const toggleLegendButton = document.getElementById('toggle-legend');
 
 // Initialize graph dimensions
 function initGraphDimensions() {
@@ -74,6 +81,30 @@ function getLinkStrength(distance) {
 function setLoading(isLoading) {
     state.loading = isLoading;
     loadingElement.style.display = isLoading ? 'block' : 'none';
+}
+
+// Instructions popup management
+function showInstructions() {
+    instructionsElement.classList.add('active');
+    instructionsBackdrop.classList.add('active');
+}
+
+function hideInstructions() {
+    instructionsElement.classList.remove('active');
+    instructionsBackdrop.classList.remove('active');
+}
+
+// Legend toggle management
+function toggleLegend() {
+    state.legendMinimized = !state.legendMinimized;
+    
+    if (state.legendMinimized) {
+        legendElement.classList.add('minimized');
+        toggleLegendButton.textContent = '+';
+    } else {
+        legendElement.classList.remove('minimized');
+        toggleLegendButton.textContent = '−';
+    }
 }
 
 // Load data
@@ -389,6 +420,14 @@ edgeFilterSlider.addEventListener('input', () => {
 edgeFilterSlider.addEventListener('change', updateEdgeFilter);
 
 window.addEventListener('resize', handleResize);
+
+// Instructions popup event listeners
+helpButton.addEventListener('click', showInstructions);
+closeInstructionsButton.addEventListener('click', hideInstructions);
+instructionsBackdrop.addEventListener('click', hideInstructions);
+
+// Legend toggle event listener
+toggleLegendButton.addEventListener('click', toggleLegend);
 
 // Initialize the graph
 function init() {

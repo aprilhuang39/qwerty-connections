@@ -9,7 +9,7 @@
 </head>
 <body>
     <header>
-        <h1>QWERTY Connections Force Graph</h1>
+        <h1>QWERTY Connections Force Graph <button id="help-button" class="help-button" aria-label="Show instructions">?</button></h1>
     </header>
     
     <div class="container">
@@ -43,33 +43,39 @@
         <div id="graph-container">
             <svg id="graph"></svg>
             <div id="loading" class="loading">Loading data...</div>
-        </div>
-        
-        <div class="legend">
-            <h3>Legend</h3>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: red;"></div>
-                <div class="legend-label">Has PD (True)</div>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: blue;"></div>
-                <div class="legend-label">Has PD (False)</div>
-            </div>
-            <div class="legend-item">
-                <div class="legend-size-container">
-                    <div class="legend-size small"></div>
-                    <div class="legend-size medium"></div>
-                    <div class="legend-size large"></div>
+            <div id="legend" class="legend">
+                <div class="legend-header">
+                    <h3>Legend</h3>
+                    <button id="toggle-legend" class="toggle-legend" aria-label="Toggle legend">−</button>
                 </div>
-                <div class="legend-label">UPDRS-III Score (Size)</div>
-            </div>
-            <div class="legend-item">
-                <div>Edge Weight: Thicker lines indicate stronger connections (smaller distance)</div>
+                <div class="legend-content">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: red;"></div>
+                        <div class="legend-label">Has PD (True)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: blue;"></div>
+                        <div class="legend-label">Has PD (False)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-size-container">
+                            <div class="legend-size small"></div>
+                            <div class="legend-size medium"></div>
+                            <div class="legend-size large"></div>
+                        </div>
+                        <div class="legend-label">UPDRS-III Score (Size)</div>
+                    </div>
+                    <div class="legend-item">
+                        <div>Edge Weight: Thicker lines indicate stronger connections (smaller distance)</div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="instructions">
+        <div id="instructions-backdrop" class="instructions-backdrop"></div>
+        <div id="instructions" class="instructions">
             <h3>Instructions</h3>
+            <button id="close-instructions" class="instructions-close" aria-label="Close instructions">×</button>
             <ul>
                 <li>Drag nodes to reposition them</li>
                 <li>Scroll to zoom in/out</li>
