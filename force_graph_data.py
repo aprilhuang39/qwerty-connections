@@ -18,12 +18,15 @@ Pipeline:
 3. Generate force graph data as such:
     - nodes: pID, has_PD, UPDRS-III (stored as dictionary and exported to json)
     - edges: euclidean distance between patients based on option permutations (stored as json)
+4. Generate edge_files.json listing all edge files for the dropdown
 """
 
 import json
 import pandas as pd
 import numpy as np
 import data.nqDataLoader as nq
+import glob
+import os
 from pathlib import Path
 
 # Data Loading
@@ -98,7 +101,9 @@ def generate_option_permutations(all_trials: pd.DataFrame) -> list[str]:
     Generate the option permutations for the force graph. Note: these are hand-picked.
     """
     return [['nQi', 'typing_speed'],
-            ['nQi', 'typing_speed', 'alternating_finger_tapping', 'single_finger_tapping'],
+            ['nQi'],
+            ['typing_speed'],
+            # ['nQi', 'typing_speed', 'alternating_finger_tapping', 'single_finger_tapping'],
             # ['nQi', 'typing_speed', 'alternating_finger_tapping'],
             # ['nQi', 'typing_speed', 'single_finger_tapping'],
             # ['nQi', 'alternating_finger_tapping', 'single_finger_tapping'],
@@ -188,6 +193,29 @@ def export_edge_data(edges: pd.DataFrame, export_dir: Path, metric_permutation: 
     with open(export_dir / f"edges_{'_'.join(metric_permutation)}.json", "w") as f:
         json.dump(edges_json, f)
 
+def generate_edge_files_list(export_dir: Path) -> None:
+    """
+    Generate a JSON file listing all edge files in the export directory.
+    This allows the web app to dynamically populate the dropdown with available edge types.
+    """
+    # Get all files matching the pattern
+    edge_files_pattern = os.path.join(export_dir, 'edges_*.json')
+    edge_files = glob.glob(edge_files_pattern)
+    
+    # Extract just the filenames
+    edge_filenames = [os.path.basename(file) for file in edge_files]
+    
+    # Sort the filenames
+    edge_filenames.sort()
+    
+    # Write to edge_files.json
+    with open(export_dir / 'edge_files.json', 'w') as f:
+        json.dump(edge_filenames, f, indent=2)
+    
+    print(f"Generated edge_files.json with {len(edge_filenames)} files:")
+    for file in edge_filenames:
+        print(f"  - {file}")
+
 if __name__ == "__main__":
     ground_truth_1 = load_ground_truth("MIT-CS1PD")
     ground_truth_2 = load_ground_truth("MIT-CS2PD")
@@ -206,3 +234,6 @@ if __name__ == "__main__":
     for metric_permutation in metric_permutations:
         distances = generate_edge_data(all_trials, metric_permutation)
         export_edge_data(distances, export_dir, metric_permutation)
+        
+    # Generate the edge_files.json file after all edge files have been created
+    generate_edge_files_list(export_dir)

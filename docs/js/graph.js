@@ -21,7 +21,7 @@ let state = {
     allLinks: [], // Store all links before filtering
     simulation: null,
     svg: null,
-    edgeFile: 'edges_nQi_typing_speed.json',
+    edgeFile: null, // Will be set dynamically from available files
     loading: true
 };
 
@@ -80,6 +80,9 @@ function setLoading(isLoading) {
 async function loadData() {
     try {
         setLoading(true);
+        
+        // Load available edge files and populate dropdown
+        await loadEdgeFileOptions();
         
         // Load nodes data
         const nodesResponse = await fetch('force_graph/nodes.json');
@@ -394,4 +397,53 @@ function init() {
 }
 
 // Start app
-init(); 
+init();
+
+// Fetch available edge files and populate dropdown
+async function loadEdgeFileOptions() {
+    try {
+        // Fetch the edge_files.json which contains a list of available edge files
+        const response = await fetch('force_graph/edge_files.json');
+        if (!response.ok) {
+            throw new Error('Could not fetch edge files list');
+        }
+        
+        const edgeFiles = await response.json();
+        
+        // Clear existing options
+        edgeSelect.innerHTML = '';
+        
+        // Add options to the dropdown
+        if (edgeFiles.length > 0) {
+            edgeFiles.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                // Create a more readable name by removing .json and edges_ prefix and replacing underscores with spaces
+                option.textContent = file.replace('.json', '').replace('edges_', '').replace(/_/g, ' ');
+                edgeSelect.appendChild(option);
+            });
+            
+            // Set the initial edge file
+            state.edgeFile = edgeFiles[0];
+        } else {
+            // Fallback to default if no files found
+            const option = document.createElement('option');
+            option.value = 'edges_nQi_typing_speed.json';
+            option.textContent = 'nQi typing speed';
+            edgeSelect.appendChild(option);
+            
+            state.edgeFile = 'edges_nQi_typing_speed.json';
+        }
+    } catch (error) {
+        console.error('Error loading edge file options:', error);
+        
+        // Fallback to default
+        edgeSelect.innerHTML = '';
+        const option = document.createElement('option');
+        option.value = 'edges_nQi_typing_speed.json';
+        option.textContent = 'nQi typing speed';
+        edgeSelect.appendChild(option);
+        
+        state.edgeFile = 'edges_nQi_typing_speed.json';
+    }
+} 
