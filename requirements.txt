@@ -6,3 +6,4 @@ ipykernel
 nbformat
 kaleido
 statsmodels
+pyarrow
