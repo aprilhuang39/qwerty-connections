@@ -17,7 +17,7 @@ Pipeline:
 2. Calculate all distances for option permutations
 3. Generate force graph data as such:
     - nodes: pID, has_PD, UPDRS-III (stored as dictionary and exported to json)
-    - edges: euclidean distance between patients based on option permutations (stored as Apache Arrow Table in a dataframe and exported as parquet for efficient column-wise access)
+    - edges: euclidean distance between patients based on option permutations (stored as json)
 """
 
 import json
@@ -28,7 +28,7 @@ from pathlib import Path
 
 # Data Loading
 DATA_PATH = Path("data")
-ASSETS_PATH = Path("docs/force_graph")
+ASSETS_PATH = Path("docs")
 
 def load_ground_truth(dataset: str) -> pd.DataFrame:
     data_dir = DATA_PATH / dataset
@@ -179,9 +179,14 @@ def export_node_data(nodes: dict, export_dir: Path) -> None:
 
 def export_edge_data(edges: pd.DataFrame, export_dir: Path, metric_permutation: list[str]) -> None:
     """
-    Export the force graph data to a parquet file (edges).
+    Export the force graph data to a JSON file (edges) for client-side compatibility.
     """
-    edges.to_parquet(export_dir / f"edges_{'_'.join(metric_permutation)}.parquet")
+    # Convert to records format for JSON serialization
+    edges_json = edges.to_dict(orient='records')
+
+    # Export as JSON
+    with open(export_dir / f"edges_{'_'.join(metric_permutation)}.json", "w") as f:
+        json.dump(edges_json, f)
 
 if __name__ == "__main__":
     ground_truth_1 = load_ground_truth("MIT-CS1PD")

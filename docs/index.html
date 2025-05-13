@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QWERTY Connections Force Graph</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>QWERTY Connections Force Graph</h1>
+    </header>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label for="edge-select">Select Edge Type:</label>
+                <select id="edge-select">
+                    <option value="edges_nQi_typing_speed.json">nQi Typing Speed</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="charge-slider">Charge Strength:</label>
+                <input type="range" id="charge-slider" min="-300" max="-10" value="-190" step="10">
+                <span id="charge-value">-190</span>
+                <div class="tooltip">How strongly nodes repel each other. More negative = stronger repulsion.</div>
+            </div>
+            <div class="control-group">
+                <label for="link-distance-slider">Link Distance:</label>
+                <input type="range" id="link-distance-slider" min="10" max="300" value="150" step="10">
+                <span id="link-distance-value">150</span>
+                <div class="tooltip">Target distance between connected nodes. Higher values = more spread out graph.</div>
+            </div>
+            <div class="control-group">
+                <label for="edge-filter-slider">Show Smallest n% of Edges:</label>
+                <input type="range" id="edge-filter-slider" min="1" max="100" value="10" step="1">
+                <span id="edge-filter-value">10%</span>
+                <div class="tooltip">Filter to show only the strongest connections. Lower percentage = fewer, stronger connections.</div>
+            </div>
+        </div>
+        
+        <div id="graph-container">
+            <svg id="graph"></svg>
+            <div id="loading" class="loading">Loading data...</div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: red;"></div>
+                <div class="legend-label">Has PD (True)</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: blue;"></div>
+                <div class="legend-label">Has PD (False)</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-size-container">
+                    <div class="legend-size small"></div>
+                    <div class="legend-size medium"></div>
+                    <div class="legend-size large"></div>
+                </div>
+                <div class="legend-label">UPDRS-III Score (Size)</div>
+            </div>
+            <div class="legend-item">
+                <div>Edge Weight: Thicker lines indicate stronger connections (smaller distance)</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Instructions</h3>
+            <ul>
+                <li>Drag nodes to reposition them</li>
+                <li>Scroll to zoom in/out</li>
+                <li>Click and drag the background to pan</li>
+                <li>Hover over nodes to see details</li>
+                <li>Adjust the controls to change the graph's appearance</li>
+                <li>Use the edge filter to show only the strongest connections (smallest n% of edges)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <p>QWERTY Connections Force Graph Visualization</p>
+    </footer>
+
+    <script src="js/graph.js"></script>
+</body>
+</html> 
