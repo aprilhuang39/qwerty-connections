@@ -98,7 +98,7 @@ def generate_option_permutations(all_trials: pd.DataFrame) -> list[str]:
     Generate the option permutations for the force graph. Note: these are hand-picked.
     """
     return [['nQi', 'typing_speed'],
-            # ['nQi', 'typing_speed', 'alternating_finger_tapping', 'single_finger_tapping'],
+            ['nQi', 'typing_speed', 'alternating_finger_tapping', 'single_finger_tapping'],
             # ['nQi', 'typing_speed', 'alternating_finger_tapping'],
             # ['nQi', 'typing_speed', 'single_finger_tapping'],
             # ['nQi', 'alternating_finger_tapping', 'single_finger_tapping'],
