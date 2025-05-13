@@ -1,0 +1,5 @@
+title: QWERTY Connections Force Graph
+description: Force graph visualization of QWERTY connections
+baseurl: "/qwerty-connections"
+url: ""
+theme: jekyll-theme-minimal 
