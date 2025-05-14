@@ -23,7 +23,7 @@ header {
 
 header h1 {
     font-size: 1.8rem;
-    font-weight: 500;
+    font-weight: bold;
     letter-spacing: 0.5px;
 }
 
@@ -103,7 +103,7 @@ span {
 .graph-title h2 {
     color: #2c3e50;
     font-size: 1.8rem;
-    font-weight: 500;
+    font-weight: bold;
     margin: 0;
     letter-spacing: 0.5px;
 }
@@ -484,6 +484,7 @@ svg:active {
     color: #333;
     border-bottom: 2px solid #eee;
     padding-bottom: 1rem;
+    font-weight: bold;
 }
 
 .writeup-section {
