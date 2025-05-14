@@ -9,15 +9,22 @@ body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f4f4f4;
+    background-color: #f8f9fa;
 }
 
 header {
-    background-color: #333;
-    color: #fff;
+    background-color: #9eaaab;
+    color: #03161f;
     text-align: center;
-    padding: 1rem;
+    padding: 1.5rem;
     position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+header h1 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 .container {
@@ -29,9 +36,9 @@ header {
 /* Controls */
 .controls {
     background-color: #fff;
-    padding: 1rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     margin-bottom: 1rem;
 }
 
@@ -76,12 +83,29 @@ span {
 /* Graph container */
 #graph-container {
     background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 0.5rem;
     height: 600px;
     overflow: hidden;
     position: relative;
+}
+
+.graph-title {
+    text-align: center;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.graph-title h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.5px;
 }
 
 svg {
@@ -99,10 +123,10 @@ svg:active {
     position: absolute;
     top: 20px;
     right: 20px;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 0.75rem;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     z-index: 10;
     max-width: 250px;
     font-size: 0.9rem;
@@ -207,6 +231,14 @@ svg:active {
     height: 30px;
 }
 
+.legend-color[style*="background-color: red"] {
+    background-color: #d64541 !important;
+}
+
+.legend-color[style*="background-color: blue"] {
+    background-color: #2980b9 !important;
+}
+
 /* Instructions */
 .instructions {
     display: none;
@@ -267,34 +299,82 @@ svg:active {
 
 /* Question mark button */
 .help-button {
+    position: relative;
+    top: -2px;
+    margin-left: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #fff;
+    color: #2c3e50;
+    border: 2px solid #2c3e50;
+    font-weight: bold;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    background-color: #fff;
-    color: #333;
-    border-radius: 50%;
     font-size: 14px;
-    font-weight: bold;
-    margin-left: 10px;
-    cursor: pointer;
-    vertical-align: middle;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
 }
 
 .help-button:hover {
-    background-color: #f0f0f0;
+    background-color: #2c3e50;
+    color: #fff;
+}
+
+#info-button {
+    margin-left: 5px;
+    font-style: italic;
+}
+
+#info {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-width: 500px;
+}
+
+#info.active {
+    display: block;
+}
+
+#info p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+#info ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+#info li {
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
 }
 
 /* Footer */
-footer {
-    background-color: #333;
-    color: #fff;
+.footer-text {
     text-align: center;
     padding: 1rem;
-    margin-top: 1rem;
+    margin: 1rem auto;
+    max-width: 1200px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .footer-text {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
 }
 
 /* Graph styles */
@@ -374,6 +454,10 @@ footer {
         margin-bottom: 1rem;
         max-width: 100%;
     }
+    
+    .graph-title h2 {
+        font-size: 1.5rem;
+    }
 }
 
 .tooltip {
@@ -390,8 +474,8 @@ footer {
     margin: 2rem auto;
     padding: 2rem;
     background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .writeup-container h2 {

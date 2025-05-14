@@ -9,8 +9,8 @@ const config = {
     charge: -190,
     edgeFilterPercentage: 10, // Default to show only 10% of edges
     colors: {
-        hasPD: 'red',
-        noPD: 'blue'
+        hasPD: '#d64541',    // More muted red
+        noPD: '#2980b9'      // More muted blue
     }
 };
 
@@ -41,6 +41,10 @@ const helpButton = document.getElementById('help-button');
 const instructionsElement = document.getElementById('instructions');
 const instructionsBackdrop = document.getElementById('instructions-backdrop');
 const closeInstructionsButton = document.getElementById('close-instructions');
+const infoButton = document.getElementById('info-button');
+const infoElement = document.getElementById('info');
+const infoBackdrop = document.getElementById('info-backdrop');
+const closeInfoButton = document.getElementById('close-info');
 const legendElement = document.getElementById('legend');
 const toggleLegendButton = document.getElementById('toggle-legend');
 
@@ -92,6 +96,17 @@ function showInstructions() {
 function hideInstructions() {
     instructionsElement.classList.remove('active');
     instructionsBackdrop.classList.remove('active');
+}
+
+// Information popup management
+function showInfo() {
+    infoElement.classList.add('active');
+    infoBackdrop.classList.add('active');
+}
+
+function hideInfo() {
+    infoElement.classList.remove('active');
+    infoBackdrop.classList.remove('active');
 }
 
 // Legend toggle management
@@ -425,6 +440,9 @@ window.addEventListener('resize', handleResize);
 helpButton.addEventListener('click', showInstructions);
 closeInstructionsButton.addEventListener('click', hideInstructions);
 instructionsBackdrop.addEventListener('click', hideInstructions);
+infoButton.addEventListener('click', showInfo);
+closeInfoButton.addEventListener('click', hideInfo);
+infoBackdrop.addEventListener('click', hideInfo);
 
 // Legend toggle event listener
 toggleLegendButton.addEventListener('click', toggleLegend);

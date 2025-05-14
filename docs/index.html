@@ -9,7 +9,7 @@
 </head>
 <body>
     <header>
-        <h1>QWERTY Connections Force Graph <button id="help-button" class="help-button" aria-label="Show instructions">?</button></h1>
+        <h1>QWERTY Connections Force Graph <button id="help-button" class="help-button" aria-label="Show instructions">?</button><button id="info-button" class="help-button" aria-label="Show information">i</button></h1>
     </header>
     
     <div class="container">
@@ -38,6 +38,10 @@
                 <span id="edge-filter-value">10%</span>
                 <div class="tooltip">Filter to show only the strongest connections. Lower percentage = fewer, stronger connections.</div>
             </div>
+        </div>
+
+        <div class="graph-title">
+            <h2>QWERTY Connections Force Graph Visualization</h2>
         </div>
         
         <div id="graph-container">
@@ -85,12 +89,20 @@
                 <li>Use the edge filter to show only the strongest connections (smallest n% of edges)</li>
             </ul>
         </div>
+
+        <div id="info-backdrop" class="instructions-backdrop"></div>
+        <div id="info" class="instructions">
+            <h3>About the Graph</h3>
+            <button id="close-info" class="instructions-close" aria-label="Close information">×</button>
+            <p>This force-directed graph visualization reveals patterns in typing behavior between Parkinson's Disease (PD) patients and control subjects. Key insights can be discovered through the following interactions:</p>
+            <ul>
+                <li>By showing a smaller percentage of edges (using the edge filter), you'll see the strongest connections between patients. This often reveals distinct clusters of PD and non-PD patients, highlighting how similar typing patterns emerge within each group.</li>
+                <li>Adjusting the charge strength and link distance can help emphasize these group differences. Higher charge strength creates more separation between nodes, while increased link distance spreads out the graph to better visualize the clusters.</li>
+                <li>The node size represents UPDRS-III scores, allowing you to see how symptom severity relates to typing patterns within the PD group.</li>
+            </ul>
+        </div>
     </div>
     
-    <footer>
-        <p>QWERTY Connections Force Graph Visualization</p>
-    </footer>
-
     <div class="writeup-container">
         <h2>Project Writeup</h2>
         
